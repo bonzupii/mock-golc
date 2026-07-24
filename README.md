@@ -1,48 +1,46 @@
 # Mock GOLC Rig
 
-A lightweight mock rig for testing lighting console output via Art-Net. Listens on UDP
-port 6454 and renders fixture state in an Iced GUI.
+A virtual Art-Net lighting rig for testing console output. Listens on UDP port 6454
+and renders fixture state in a responsive Iced GUI.
 
-## DMX Universe Layout
+## Features
 
-All fixtures below are on **Universe 0**. Addresses are 1-indexed.
+- **Multi-universe** — tab bar to switch between universes
+- **Fixture profiles** — RGB par, RGBW wash, moving head with pan/tilt and colour/gobo wheels
+- **Responsive grid** — fixture cards that wrap to fit the window
+- **Stage view** — 2D top-down plot with beam direction for movers and cursor hover highlight
+- **Config editor** — add/remove universes, fixtures, and profiles from a built-in panel; saved to `~/.config/mock-golc/rig.toml`
+- **Dark/light theme** toggle
 
-| Address | Fixture      | Channels                                |
-|---------|--------------|-----------------------------------------|
-| 1       | Par 1        | Dimmer, Red, Green, Blue                |
-| 5       | Par 2        | Dimmer, Red, Green, Blue                |
-| 9       | Par 3        | Dimmer, Red, Green, Blue                |
-| 13      | Par 4        | Dimmer, Red, Green, Blue                |
-| 17      | Wash 1       | Dimmer, Red, Green, Blue, White         |
-| 22      | Wash 2       | Dimmer, Red, Green, Blue, White         |
-| 27      | Dimmer Rack  | Dimmer                                  |
-| 28      | UV Wash      | Dimmer, Red, Green, Blue, UV            |
-| 33      | Amber Par    | Dimmer, Amber                           |
-| 35      | Strobe       | Dimmer, Custom                          |
+## Default Rig (Universe 0)
 
-- Custom channels are accepted but ignored by the mock.
-- When the Dimmer channel is 0, state rendering treats it as 1.0 (full) so that color-only
-  fixtures display correctly even with no explicit dimmer level.
+| Address | Name     | Profile      |
+|---------|----------|--------------|
+| 1       | Par 1    | RGB Par      |
+| 5       | Par 2    | RGB Par      |
+| 9       | Par 3    | RGB Par      |
+| 13      | Par 4    | RGB Par      |
+| 17      | Wash 1   | RGBW Wash    |
+| 22      | Wash 2   | RGBW Wash    |
+| 27      | Mover 1  | Moving Head  |
+| 36      | Mover 2  | Moving Head  |
 
-## Fixture Profiles
+### Built-in Profiles
 
-Each fixture maps incoming DMX values to its channels. Channel values are normalised to
-`0.0–1.0` internally.
+| Profile       | Channels                                                  |
+|---------------|-----------------------------------------------------------|
+| RGB Par       | Dimmer, Red, Green, Blue                                  |
+| RGBW Wash     | Dimmer, Red, Green, Blue, White                           |
+| Moving Head   | Dimmer, Pan, Pan Fine, Tilt, Tilt Fine, Color Wheel, Gobo Wheel, Shutter, Zoom |
 
-- **RGB fixtures** (Pars 1–4): 4 channels each (3 addresses consumed by colour after dimmer).
-- **RGB+White** (Washes 1–2): 5 channels; white is accepted but not rendered in the GUI
-  (only RGB+dimmer contributes to the colour swatch).
-- **UV Wash**: 5 channels; UV channel is accepted but not rendered.
-- **Amber Par**: 2 channels; amber is accepted but not reflected in the GUI swatch.
-- **Strobe**: 2 channels; the custom channel is a placeholder for strobe rate or similar —
-  no special behaviour is implemented.
+Moving heads include colour and gobo wheel slot definitions (8 colour positions,
+5 gobo positions) and a 540° pan / 270° tilt range.
 
-## State Display
+## Usage
 
-Each fixture renders a 60×60 px colour swatch and info panel showing:
+Run the binary; it binds `0.0.0.0:6454` and waits for Art-Net ArtDmx packets.
+Switch between grid and stage view with the buttons in the header bar. Open the
+config panel to edit the rig at runtime — changes persist to `rig.toml`.
 
-- Fixture name and DMX address
-- The computed RGB colour (dimmer‑modulated) or greyscale dimmer value
-
-The window title shows the active packet's sender IP and universe number after the first
-packet is received.
+When the Dimmer channel is 0, the mock treats it as 1.0 (full) so that colour-only
+fixtures display correctly even without an explicit dimmer level.
